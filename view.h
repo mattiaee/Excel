@@ -26,6 +26,10 @@
 #include <QToolBar>
 #include "model.h"
 #include "data.h"
+#include "barchart.h"
+#include "linechart.h"
+#include "piechart.h"
+#include "tableview.h"
 
 class View : public QWidget
 {
@@ -35,14 +39,20 @@ public:
     View(QWidget *parent = 0);
 
 private:
-    Data *data;
+    Data* data;
 
     QMenu* file;
-    QChart *chart;
-    QTableView *tableView;
-    QChartView *chartView;
+    //QChart *chart;
+    //QTableView *tableView;
+    //QChartView *chartView;
 
-    void addMenu(QVBoxLayout* mainLayout);
+    TableView* tableView;
+
+    BarChart* barChart;
+    LineChart* lineChart;
+    PieChart* pieChart;
+
+    void addMenu(QToolBar* toolBar);
     void addTableControls(QToolBar* toolBar);
     void addChartControls(QToolBar* toolBar, QGridLayout* mainLayout);
 
@@ -60,9 +70,10 @@ public slots:
     void addBarChart(QGridLayout *);
     void addLineChart(QGridLayout *);
     void addPieChart(QGridLayout *);
+    void deleteChart(QGridLayout *);
 
-    void customHeaderMenuRequestedH(QPoint pos);
-    void customHeaderMenuRequestedV(QPoint pos);
+    //void customHeaderMenuRequestedH(QPoint pos);
+    //void customHeaderMenuRequestedV(QPoint pos);
 };
 
 #endif // VIEW_H

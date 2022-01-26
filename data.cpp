@@ -6,10 +6,11 @@ Data::Data(int m_c, int m_r, QObject *parent) :
     for (int i = 0; i < m_rowCount; i++) {
         QVector<qreal>* data = new QVector<qreal>(m_columnCount);
         m_data.append(data);
+        ver_headers.insert(i, QString("%1").arg(i + 1));
     }
+    for (int i = 0; i < m_columnCount; i++)
+        hor_headers.insert(i, QString("%1").arg(i + 1));
 }
-
-//void Model::setView(View* v) {view = v;}
 
 Data::~Data()
 {
@@ -33,32 +34,32 @@ QVariant Data::headerData(int section, Qt::Orientation orientation, int role) co
     if (role != Qt::DisplayRole)
         return QVariant();
     if (orientation == Qt::Horizontal){
-        return QString("Col %1").arg(section + 1);
+        //QString("%1").arg(section + 1);
+        return (section < hor_headers.length() ? hor_headers[section] : QVariant());
+        //return QString("%1").arg(section + 1);
     }else{
-        return QString("Row %1").arg(section + 1);
+        return (section < ver_headers.length() ? ver_headers[section] : QVariant());
+        //return ver_headers[section];
+        //return QString("%1").arg(section + 1);
     }
 }
-
-/*bool Data::setHeaderData(int section, Qt::Orientation orientation,const QVariant &value, int role)
-{
-    qDebug()<<role;
-    if (role != Qt::DisplayRole)
+bool Data:: setHeaderData(int section, Qt::Orientation orientation,const QVariant &value, int role){
+    if (role != Qt::EditRole && role != Qt::DisplayRole)
         return false;
-
-    if(orientation == Qt::Horizontal){
-        h_headers.at(section)->setValue(value);
-        qDebug() << h_headers.at(section)->toString();
-    }else{
-        v_headers.at(section)->setValue(value);
-        qDebug() << v_headers.at(section)->toString();
-    }
-    bool result = QAbstractItemModel::setHeaderData(section, orientation, value);
-    qDebug()<< result;
-    if (result)
-        emit headerDataChanged(orientation, 0, this->columnCount());
-
-    return true;
-}*/
+    if(orientation == Qt::Horizontal)
+        if(section<hor_headers.length()){
+            hor_headers.replace(section,value.toString());
+            emit headerDataChanged(Qt::Horizontal, 0, hor_headers.length());
+            return true;
+        }else return false;
+    else
+        if(section<ver_headers.length()){
+            ver_headers.replace(section,value.toString());
+            emit headerDataChanged(Qt::Vertical, 0, ver_headers.length());
+            return true;
+        }else return false;
+    return QAbstractTableModel::setHeaderData(section, orientation, value, role);
+}
 
 QVariant Data::data(const QModelIndex &index, int role) const
 {
@@ -102,7 +103,8 @@ bool Data::insertRows(int position, int rows, const QModelIndex &parent)
         m_data.insert(position, new QVector<qreal>(m_columnCount));
     }
     m_rowCount += rows;
-
+    //aggiorno vertical header manualmente
+    ver_headers.insert(position, QString("%1").arg(position+1));
     endInsertRows();
     return true;
 
@@ -111,7 +113,7 @@ bool Data::insertRows(int position, int rows, const QModelIndex &parent)
 bool Data::removeRows(int position, int rows, const QModelIndex &parent)
 {
     Q_UNUSED(parent);
-    if(position >= 0 && position<=rowCount()){
+    if(position >= 0 && position<rowCount()){
         beginRemoveRows(QModelIndex(), position, position+rows-1);
 
         for (int row = 0; row < rows; ++row) {
@@ -119,7 +121,8 @@ bool Data::removeRows(int position, int rows, const QModelIndex &parent)
         }
 
         m_rowCount -= rows;
-
+        //aggiorno vertical header manualmente
+        ver_headers.removeAt(position);
         endRemoveRows();
         return true;
     }
@@ -136,15 +139,16 @@ bool Data::insertColumns(int position, int columns, const QModelIndex &parent)
     }
 
     m_columnCount += columns;
-
     endInsertColumns();
+    //aggiorno horizontal header manualmente
+    hor_headers.insert(position, QString("%1").arg(position+1));
     return true;
 }
 
 bool Data::removeColumns(int position, int columns, const QModelIndex &parent)
 {
     Q_UNUSED(parent);
-    if(position >= 0 && position<=columnCount()){
+    if(position >= 0 && position<columnCount()){
         beginRemoveColumns(QModelIndex(), position, position+columns-1);
 
         for(int row = 0; row < m_rowCount; ++row) {
@@ -152,15 +156,15 @@ bool Data::removeColumns(int position, int columns, const QModelIndex &parent)
         }
 
         m_columnCount -= columns;
-
+        //aggiorno horizontal header manualmente
+        hor_headers.removeAt(position);
         endRemoveColumns();
         return true;
     }
     return false;
 }
 
-void Data::addMapping(QString color, QRect area)
-{
+void Data::addMapping(QString color, QRect area) {
     m_mapping.insert(color, area);
 }
 void Data::clearMapping() {

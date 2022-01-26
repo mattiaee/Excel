@@ -1,5 +1,16 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
-    <file>images/addColumn.png</file>
+    <file>images/add-column-32.png</file>
+    <file>images/add-row-32.png</file>
+    <file>images/remove-column-32.png</file>
+    <file>images/remove-row-32.png</file>
+    <file>images/bar-chart-32.png</file>
+    <file>images/line-chart-32.png</file>
+    <file>images/pie-chart-32.png</file>
+    <file>images/delete-chart-32.png</file>
+    <file>images/open-file-32.png</file>
+    <file>images/save-file-32.png</file>
+    <file>images/new-file-32.png</file>
+    <file>images/exit-32.png</file>
 </qresource>
 </RCC>

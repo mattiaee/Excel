@@ -1,6 +1,6 @@
 #include "view.h"
 
-void View::customHeaderMenuRequestedH(QPoint pos){
+/*void View::customHeaderMenuRequestedH(QPoint pos){
     int column=tableView->horizontalHeader()->logicalIndexAt(pos);
 
     QMenu *menu=new QMenu(this);
@@ -10,6 +10,7 @@ void View::customHeaderMenuRequestedH(QPoint pos){
     connect(menu->actions()[0], &QAction::triggered, this, [=] {
         QString txt = QInputDialog::getText(this, tr("Enter a value"), tr("Enter a value"), QLineEdit::Normal, "");
         data->setHeaderData(column, Qt::Horizontal, txt);
+        tableView->verticalHeader()->resizeSection(column,5);//????
     });
     connect(menu->actions()[1], &QAction::triggered, this, [=] { data->removeColumns(column,1);});
     menu->popup(tableView->horizontalHeader()->viewport()->mapToGlobal(pos));
@@ -17,7 +18,6 @@ void View::customHeaderMenuRequestedH(QPoint pos){
 
 void View::customHeaderMenuRequestedV(QPoint pos){
     int row=tableView->verticalHeader()->logicalIndexAt(pos);
-    qDebug() << row;
 
     QMenu *menu=new QMenu(this);
     menu->addAction(new QAction("Rename Row", this));
@@ -26,44 +26,46 @@ void View::customHeaderMenuRequestedV(QPoint pos){
     connect(menu->actions()[0], &QAction::triggered, this, [=] {
         QString txt =  QInputDialog::getText(this, tr("Enter a value"), tr("Enter a value"), QLineEdit::Normal, "");
         data->setHeaderData(row,Qt::Vertical,txt);
+        tableView->verticalHeader()->resizeSection(row,5);
     });
     connect(menu->actions()[1],  &QAction::triggered, this, [=] { data->removeRows(row, 1);});
     menu->popup(tableView->horizontalHeader()->viewport()->mapToGlobal(pos));
-}
+}*/
 
 
 View::View(QWidget *parent) : QWidget(parent) {
     // create simple model for storing data
     // user's table data model
     data = new Data;
+    tableView = new TableView(data);
     //qDebug() << data->setHeaderData(2, Qt::Horizontal, QVariant("8"), Qt::EditRole);
     // create table view and add model to it
-    tableView = new QTableView;
+    /*tableView = new QTableView;
     tableView->setModel(data);
     tableView->setMinimumWidth(100);
-    //tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    //tableView->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
+    tableView->verticalHeader()->setSectionResizeMode(QHeaderView::Interactive);
     data->setParent(tableView);
 
     tableView->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(tableView->horizontalHeader(), SIGNAL(customContextMenuRequested(QPoint)), SLOT(customHeaderMenuRequestedH(QPoint)));
 
     tableView->verticalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(tableView->verticalHeader(), SIGNAL(customContextMenuRequested(QPoint)), SLOT(customHeaderMenuRequestedV(QPoint)));
-
-    chartView = new QChartView;
+    connect(tableView->verticalHeader(), SIGNAL(customContextMenuRequested(QPoint)), SLOT(customHeaderMenuRequestedV(QPoint)));*/
+    //chartView = new QChartView;
 
     // create main layout
     QVBoxLayout *mainLayout = new QVBoxLayout;
     QGridLayout *gridLayout = new QGridLayout;
     gridLayout->addWidget(tableView, 1, 0);
-    gridLayout->addWidget(chartView, 1, 1);
+    //gridLayout->addWidget(chartView, 1, 1);
     /*mainLayout->setColumnStretch(1, 1);
     mainLayout->setColumnStretch(0, 0);*/
 
-    addMenu(mainLayout);
+    //addMenu(mainLayout);
 
     QToolBar* toolBar = new QToolBar;
+    addMenu(toolBar);
     addTableControls(toolBar);
     addChartControls(toolBar, gridLayout);
 
@@ -74,7 +76,7 @@ View::View(QWidget *parent) : QWidget(parent) {
     setLayout(mainLayout);
 }
 
-void View::addMenu(QVBoxLayout* mainLayout) {
+/*void View::addMenu(QVBoxLayout* mainLayout) {
 
     QMenuBar* menuBar = new QMenuBar(this);
 
@@ -93,6 +95,13 @@ void View::addMenu(QVBoxLayout* mainLayout) {
     connect(file->actions()[2], SIGNAL(triggered()), this, SLOT(close()));
 
     mainLayout->addWidget(menuBar);
+}*/
+void View::addMenu(QToolBar* toolBar) {
+    toolBar->addAction(QIcon(":/images/exit-32.png"), "EXIT", [=] { this->close();});
+    toolBar->addAction(QIcon(":/images/open-file-32.png"), "Open", [=] { this->openFile();});
+    toolBar->addAction(QIcon(":/images/save-file-32.png"), "Save", [=] { this->saveFile();});
+    toolBar->addAction(QIcon(":/images/new-file-32.png"), "New", [=] { /*this->newTable();*/});
+    toolBar->addSeparator();
 }
 
 void View::openFile()
@@ -103,16 +112,11 @@ void View::openFile()
 }
 
 void View::loadFile(const QString &fileName) {
-    QMessageBox msgBox;
     QFile file(fileName);
-    if (fileName.isEmpty()){
-        msgBox.setText("File non presente");
-        msgBox.exec();
-    }
-    if (!file.open(QFile::ReadOnly | QFile::Text)){
-        msgBox.setText("Formato file non supportato o tipo file di sola lettura");
-        msgBox.exec();
-    }
+    if (fileName.isEmpty())
+        return;
+    if (!file.open(QFile::ReadOnly | QFile::Text))
+        return;
     QTextStream stream(&file);
 
     data->removeRows(0, data->rowCount());//rimuove tutte le righe???
@@ -147,19 +151,14 @@ void View::loadFile(const QString &fileName) {
 }
 
 void View::saveFile() {
-    QMessageBox msgBox;
     QString fileName = QFileDialog::getSaveFileName(this, "Save file as", "", "*.txt");
 
-    if (fileName.isEmpty()){
-        msgBox.setText("File non presente");
-        msgBox.exec();
-    }
+    if (fileName.isEmpty())
+        return;
 
     QFile file(fileName);
-    if (!file.open(QFile::WriteOnly | QFile::Text)){
-        msgBox.setText("Formato file non supportato o tipo file di sola lettura");
-        msgBox.exec();
-    }
+    if (!file.open(QFile::WriteOnly | QFile::Text))
+        return;
 
     QTextStream stream(&file);
     stream << data->rowCount() << ";" << data->columnCount() << "\n";
@@ -194,14 +193,28 @@ void View::removeColumns(int col) {
 }
 */
 void View::addTableControls(QToolBar* toolBar) {
-    toolBar->addAction(QIcon(":/images/addRow.png"), "Add Row", [=] { if(!data->insertRows(data->rowCount(),1)) { QMessageBox msgBox;msgBox.setText("Errore nell'inserimento"); msgBox.exec(); };});
-    toolBar->addAction(QIcon(":/images/addColumn.png"), "Add Column", [=] { if(!data->insertColumns(data->columnCount(),1)) { QMessageBox msgBox;msgBox.setText("Errore nell'inserimento"); msgBox.exec();};});
-    toolBar->addAction(QIcon(":/images/removeRow.png"), "Remove Row", [=] { if(!data->removeRows(data->rowCount()-1,1)) { QMessageBox msgBox;msgBox.setText("Errore nella rimozione"); msgBox.exec(); };});
-    toolBar->addAction(QIcon(":/images/removeColumn.png"), "Remove Column", [=] { if(!data->removeColumns(data->columnCount()-1,1)) { QMessageBox msgBox;msgBox.setText("Errore nella rimozione"); msgBox.exec(); }; });
+    toolBar->addSeparator();
+    toolBar->addAction(QIcon(":/images/add-row-32.png"), "Add Row", [=] { if(!data->insertRows(data->rowCount(),1)) { QMessageBox msgBox;msgBox.setText("Errore nell'inserimento"); msgBox.exec(); };});
+    toolBar->addAction(QIcon(":/images/add-column-32.png"), "Add Column", [=] { if(!data->insertColumns(data->columnCount(),1)) { QMessageBox msgBox;msgBox.setText("Errore nell'inserimento"); msgBox.exec();};});
+    toolBar->addAction(QIcon(":/images/remove-row-32.png"), "Remove Row", [=] { if(!data->removeRows(data->rowCount()-1,1)) { QMessageBox msgBox;msgBox.setText("Errore nella rimozione"); msgBox.exec(); };});
+    toolBar->addAction(QIcon(":/images/remove-column-32.png"), "Remove Column", [=] { if(!data->removeColumns(data->columnCount()-1,1)) { QMessageBox msgBox;msgBox.setText("Errore nella rimozione"); msgBox.exec(); }; });
     toolBar->addSeparator();
 }
 
 void View::addBarChart(QGridLayout* mainLayout) {
+    QMessageBox msgBox;
+    //QModelIndexList indexes = tableView->selectionModel()->selectedIndexes();
+    QModelIndexList indexes = tableView->getIndexesSelection();
+    if(indexes.isEmpty()){
+        msgBox.setText("selezione non valida");
+        msgBox.exec();
+    } else {
+        deleteChart(mainLayout);
+        barChart = new BarChart(data, indexes);
+        mainLayout->addWidget(barChart, 1, 1);
+    }
+}
+/*void View::addBarChart(QGridLayout* mainLayout) {
 
     QBarSeries *series = new QBarSeries;
 
@@ -251,9 +264,23 @@ void View::addBarChart(QGridLayout* mainLayout) {
     chartView->setMinimumSize(640, 480);
 
     mainLayout->addWidget(chartView, 1, 1);
-}
+}*/
 
 void View::addPieChart(QGridLayout* mainLayout) {
+    QMessageBox msgBox;
+    //QModelIndexList indexes = tableView->selectionModel()->selectedIndexes();
+    QModelIndexList indexes = tableView->getIndexesSelection();
+    if(indexes.isEmpty()){
+        msgBox.setText("selezione non valida");
+        msgBox.exec();
+    } else {
+        deleteChart(mainLayout);
+        pieChart = new PieChart(data, indexes);
+        mainLayout->addWidget(pieChart, 1, 1);
+    }
+}
+
+/*void View::addPieChart(QGridLayout* mainLayout) {
 
     QPieSeries *series = new QPieSeries;
 
@@ -288,9 +315,20 @@ void View::addPieChart(QGridLayout* mainLayout) {
     chartView->setMinimumSize(640, 480);
 
     mainLayout->addWidget(chartView, 1, 1);
-}
-
+}*/
 void View::addLineChart(QGridLayout* mainLayout) {
+    QMessageBox msgBox;
+    QModelIndexList indexes = tableView->getIndexesSelection();
+    if(indexes.isEmpty()){
+        msgBox.setText("selezione non valida");
+        msgBox.exec();
+    } else {
+        deleteChart(mainLayout);
+        lineChart = new LineChart(data, indexes);
+        mainLayout->addWidget(lineChart, 1, 1);
+    }
+}
+/*void View::addLineChart(QGridLayout* mainLayout) {
 
     QLineSeries *series;
 
@@ -330,11 +368,21 @@ void View::addLineChart(QGridLayout* mainLayout) {
     chartView->setMinimumSize(640, 480);
 
     mainLayout->addWidget(chartView, 1, 1);
+}*/
+
+void View::deleteChart(QGridLayout* mainLayout) {
+    if(mainLayout->itemAtPosition(1,1)){
+        mainLayout->itemAtPosition(1,1)->widget()->deleteLater();
+        tableView->reset();
+        data->clearMapping();
+    }
 }
 
 void View::addChartControls(QToolBar* toolBar, QGridLayout* mainLayout) {
+    //mainLayout->removeItem(mainLayout->itemAtPosition(1,1));
     toolBar->addSeparator();
-    toolBar->addAction(QIcon(":/images/addColumn.png"), "Add Bar Chart", [=] { this->addBarChart(mainLayout); });
-    toolBar->addAction(QIcon(":/images/addColumn.png"), "Add Pie Chart", [=] { this->addPieChart(mainLayout); });
-    toolBar->addAction(QIcon(":/images/addColumn.png"), "Add Line Chart", [=] { this->addLineChart(mainLayout); });
+    toolBar->addAction(QIcon(":/images/bar-chart-32.png"), "Add Bar Chart", [=] { this->addBarChart(mainLayout); });
+    toolBar->addAction(QIcon(":/images/pie-chart-32.png"), "Add Pie Chart", [=] { this->addPieChart(mainLayout); });
+    toolBar->addAction(QIcon(":/images/line-chart-32.png"), "Add Line Chart", [=] { this->addLineChart(mainLayout); });
+    toolBar->addAction(QIcon(":/images/delete-chart-32.png"), "Delete Chart", [=] { this->deleteChart(mainLayout); });
 }
